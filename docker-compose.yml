@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # FastAPI Backend
+  backend:
+    build: .
+    container_name: podcast-archive-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./config:/app/config
+      - ${AUDIO_DIR:-~/podcasts}:/audio:ro  # Mount your podcast directory
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/podcasts.db
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - LOG_LEVEL=INFO
+    env_file:
+      - .env
+    command: python -m backend.main
+    restart: unless-stopped
+    networks:
+      - podcast-network
+
+  # Streamlit Frontend
+  frontend:
+    build: .
+    container_name: podcast-archive-frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./config:/app/config
+      - ${AUDIO_DIR:-~/podcasts}:/audio:ro
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/podcasts.db
+    env_file:
+      - .env
+    command: streamlit run frontend/streamlit_app.py --server.port=8501 --server.address=0.0.0.0
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - podcast-network
+
+  # Optional: Redis for background tasks (if using Celery)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: podcast-archive-redis
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+  #   networks:
+  #     - podcast-network
+
+networks:
+  podcast-network:
+    driver: bridge
+
+volumes:
+  data:
+  models:
