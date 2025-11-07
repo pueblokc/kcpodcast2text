@@ -9,30 +9,76 @@ echo.
 REM Check if Python is installed
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo Error: Python not found. Please install Python 3.10+
+    echo Error: Python not found. Please install Python 3.11
+    echo Download: https://www.python.org/downloads/release/python-3119/
     pause
     exit /b 1
 )
 
 echo Python found:
 python --version
+
+REM Check Python version
+for /f "tokens=2" %%i in ('python --version 2^>^&1') do set PYVER=%%i
+echo Detected: %PYVER%
 echo.
+
+REM Warn if Python 3.13
+echo %PYVER% | findstr /C:"3.13" >nul
+if not errorlevel 1 (
+    echo ==========================================
+    echo   WARNING: Python 3.13 Detected!
+    echo ==========================================
+    echo.
+    echo Python 3.13 is too new! PyInstaller doesn't support it yet.
+    echo.
+    echo SOLUTION:
+    echo 1. Install Python 3.11 from:
+    echo    https://www.python.org/downloads/release/python-3119/
+    echo 2. Run: py -3.11 build_windows.bat
+    echo.
+    echo OR use SIMPLE_INSTALL.bat to run without building exe
+    echo.
+    pause
+    exit /b 1
+)
 
 REM Create virtual environment if it doesn't exist
 if not exist "venv-build" (
     echo Creating build environment...
     python -m venv venv-build
+    if errorlevel 1 (
+        echo Error creating virtual environment
+        pause
+        exit /b 1
+    )
 )
 
 REM Activate virtual environment
 echo Activating build environment...
 call venv-build\Scripts\activate.bat
 
+REM Upgrade pip first
+echo Upgrading pip...
+python -m pip install --upgrade pip setuptools wheel
+
 REM Install dependencies
 echo Installing dependencies...
-pip install -q --upgrade pip
-pip install -q -r requirements.txt
-pip install -q -r requirements-build.txt
+echo This may take a few minutes...
+pip install -r requirements.txt
+if errorlevel 1 (
+    echo.
+    echo ERROR: Failed to install dependencies
+    echo Try: pip install fastapi uvicorn streamlit sqlalchemy aiosqlite
+    pause
+    exit /b 1
+)
+
+pip install -r requirements-build.txt
+if errorlevel 1 (
+    echo Warning: Build dependencies failed, installing PyInstaller directly...
+    pip install pyinstaller
+)
 
 REM Download NLTK data
 echo Downloading NLTK data...
