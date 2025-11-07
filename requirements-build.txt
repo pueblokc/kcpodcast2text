@@ -1,0 +1,15 @@
+# PyInstaller
+pyinstaller==6.3.0
+
+# Auto-py-to-exe (GUI for PyInstaller)
+auto-py-to-exe==2.42.0
+
+# Nuitka (alternative compiler)
+nuitka==1.9.7
+ordered-set==4.1.0
+
+# For Windows installers
+pynsist==2.8
+
+# For creating installers
+briefcase==0.3.17
