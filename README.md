@@ -504,3 +504,7 @@ If you find this project useful, please consider giving it a star! ⭐
 ---
 
 **Made with ❤️ for podcast enthusiasts**
+
+---
+
+*Built by [KCCS](https://kccsonline.com) with [Claude Code](https://claude.ai/code)*
